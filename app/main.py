@@ -1,6 +1,9 @@
 from fastapi import FastAPI
+from app.routers.route_assignments import router as router_assignments_router
 
 app = FastAPI()
+
+app.include_router(router_assignments_router)
 
 
 @app.get("/")
