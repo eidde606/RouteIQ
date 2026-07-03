@@ -2,4 +2,7 @@
 name = "routeiq"
 version = "0.1.0"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "fastapi>=0.139.0",
+    "uvicorn>=0.49.0",
+]
