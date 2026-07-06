@@ -1,3 +1,4 @@
+import math
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import NotFoundException
@@ -17,8 +18,44 @@ def create_assignment(db: Session, assignment: RouteAssignmentCreate):
     return route_assignment_repository.save(db, new_assignment)
 
 
-def get_all_route_assignments(db: Session):
-    return route_assignment_repository.find_all(db)
+def get_all_route_assignments(
+        db: Session,
+        page: int = 1,
+        page_size: int = 10,
+        office: str | None = None,
+        carrier_name: str | None = None,
+        sort_by: str = "id",
+        order: str = "asc",
+):
+    skip = (page - 1) * page_size
+
+    assignments = route_assignment_repository.find_all(
+        db=db,
+        skip=skip,
+        limit=page_size,
+        office=office,
+        carrier_name=carrier_name,
+        sort_by=sort_by,
+        order=order,
+    )
+
+    total_items = route_assignment_repository.count(
+        db=db,
+        office=office,
+        carrier_name=carrier_name
+    )
+
+    total_pages = math.ceil(total_items / page_size) if total_items else 1
+
+    return {
+        "page": page,
+        "page_size": page_size,
+        "total_items": total_items,
+        "total_pages": total_pages,
+        "has_next": page < total_pages,
+        "has_previous": page > 1,
+        "data": assignments,
+    }
 
 
 def get_assignment_by_id(db: Session, id: int):

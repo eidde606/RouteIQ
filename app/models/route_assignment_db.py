@@ -14,5 +14,5 @@ class RouteAssignment(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     date: Mapped[date] = mapped_column(Date)
     route_id: Mapped[int] = mapped_column(Integer)
-    carrier_name: Mapped[str] = mapped_column(String)
-    office: Mapped[str] = mapped_column(String)
+    carrier_name: Mapped[str] = mapped_column(String(100))
+    office: Mapped[str] = mapped_column(String(100))
