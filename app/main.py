@@ -1,16 +1,36 @@
 from fastapi import FastAPI
+
+from app.core.logging_config import logger
 from app.routers.route_assignments import router as router_assignments_router
 
-app = FastAPI()
+app = FastAPI(
+    title="RouteIQ API",
+    version="1.0.0"
+)
 
 app.include_router(router_assignments_router)
 
 
+@app.on_event("startup")
+def startup_event():
+    logger.info("RouteIQ API started successfully")
+
+
 @app.get("/")
 def read_root():
-    return {"name": "RouteIQ API", "version": "1.0", "status": "running"}
+    logger.info("Root endpoint called")
+
+    return {
+        "name": "RouteIQ API",
+        "version": "1.0",
+        "status": "running"
+    }
 
 
 @app.get("/health")
 def read_health():
-    return {"status": "healthy"}
+    logger.info("Health endpoint called")
+
+    return {
+        "status": "healthy"
+    }
