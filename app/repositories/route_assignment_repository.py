@@ -5,18 +5,19 @@ from app.models.route_assignment_db import RouteAssignment as RouteAssignmentDB
 
 
 def count(
-    db: Session,
-    office: str | None = None,
-    carrier_name: str | None = None,
+        db: Session,
+        office: str | None = None,
+        carrier_name: str | None = None,
 ):
     query = db.query(RouteAssignmentDB)
 
     if office:
-        query = query.filter(RouteAssignmentDB.office == office)
+        query = query.filter(
+            RouteAssignmentDB.office.ilike(f"%{office}%"))
 
     if carrier_name:
         query = query.filter(
-            RouteAssignmentDB.carrier_name == carrier_name
+            RouteAssignmentDB.carrier_name.ilike(f"%{carrier_name}%")
         )
 
     return query.count()
@@ -38,24 +39,25 @@ def save(db: Session, assignment: RouteAssignment):
 
 
 def find_all(
-    db: Session,
-    skip: int = 0,
-    limit: int = 10,
-    office: str | None = None,
-    carrier_name: str | None = None,
-    sort_by: str = "id",
-    order: str = "asc",
+        db: Session,
+        skip: int = 0,
+        limit: int = 10,
+        office: str | None = None,
+        carrier_name: str | None = None,
+        sort_by: str = "id",
+        order: str = "asc",
 ):
     query = db.query(RouteAssignmentDB)
 
     if office:
-        query = query.filter(RouteAssignmentDB.office == office)
+        query = query.filter(
+            RouteAssignmentDB.office.ilike(f"%{office}%")
+        )
 
     if carrier_name:
         query = query.filter(
-            RouteAssignmentDB.carrier_name == carrier_name
+            RouteAssignmentDB.carrier_name.ilike(f"%{carrier_name}%")
         )
-
     allowed_sort_fields = {
         "id": RouteAssignmentDB.id,
         "date": RouteAssignmentDB.date,
