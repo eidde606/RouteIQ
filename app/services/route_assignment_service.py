@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from app.core.exceptions import NotFoundException
 from app.models.route_assignment import RouteAssignment, RouteAssignmentCreate
 from app.repositories import route_assignment_repository
 
@@ -21,10 +22,20 @@ def get_all_route_assignments(db: Session):
 
 
 def get_assignment_by_id(db: Session, id: int):
-    return route_assignment_repository.find_by_id(db, id)
+    assignment = route_assignment_repository.find_by_id(db, id)
+
+    if assignment is None:
+        raise NotFoundException("Route assignment not found")
+
+    return assignment
 
 
 def update_assignment(db: Session, id: int, updated_assignment: RouteAssignmentCreate):
+    existing_assignment = route_assignment_repository.find_by_id(db, id)
+
+    if existing_assignment is None:
+        raise NotFoundException("Route assignment not found")
+
     new_assignment = RouteAssignment(
         id=id,
         date=updated_assignment.date,
@@ -37,4 +48,9 @@ def update_assignment(db: Session, id: int, updated_assignment: RouteAssignmentC
 
 
 def delete_assignment(db: Session, id: int):
-    return route_assignment_repository.delete(db, id)
+    assignment = route_assignment_repository.delete(db, id)
+
+    if assignment is None:
+        raise NotFoundException("Route assignment not found")
+
+    return assignment

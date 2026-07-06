@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
@@ -43,15 +43,7 @@ def get_route_assignment(
     assignment_id: int,
     db: Session = Depends(get_db)
 ):
-    assignment = get_assignment_by_id(db, assignment_id)
-
-    if assignment is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Route assignment not found"
-        )
-
-    return assignment
+    return get_assignment_by_id(db, assignment_id)
 
 
 @router.put("/{assignment_id}")
@@ -60,15 +52,7 @@ def update_route_assignment(
     assignment: RouteAssignmentCreate,
     db: Session = Depends(get_db)
 ):
-    updated_assignment = update_assignment(db, assignment_id, assignment)
-
-    if updated_assignment is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Route assignment not found"
-        )
-
-    return updated_assignment
+    return update_assignment(db, assignment_id, assignment)
 
 
 @router.delete("/{assignment_id}")
@@ -77,12 +61,6 @@ def delete_route_assignment(
     db: Session = Depends(get_db)
 ):
     deleted_assignment = delete_assignment(db, assignment_id)
-
-    if deleted_assignment is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Route assignment not found"
-        )
 
     return {
         "message": "Route assignment deleted successfully",
