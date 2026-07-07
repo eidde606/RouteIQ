@@ -2,8 +2,17 @@ from fastapi import FastAPI
 
 from app.core.logging_config import logger
 from app.routers.route_assignments import router as router_assignments_router
-from app.core.exceptions import NotFoundException
-from app.core.exception_handlers import not_found_exception_handler
+from app.routers.users import router as users_router
+
+from app.core.exceptions import (
+    NotFoundException,
+    BadRequestException,
+)
+
+from app.core.exception_handlers import (
+    not_found_exception_handler,
+    bad_request_exception_handler,
+)
 
 app = FastAPI(
     title="RouteIQ API",
@@ -11,8 +20,10 @@ app = FastAPI(
 )
 
 app.add_exception_handler(NotFoundException, not_found_exception_handler)
+app.add_exception_handler(BadRequestException, bad_request_exception_handler)
 
 app.include_router(router_assignments_router)
+app.include_router(users_router)
 
 
 @app.on_event("startup")

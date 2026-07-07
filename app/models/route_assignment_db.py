@@ -2,10 +2,8 @@ from datetime import date
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import Integer, String, Date
+from app.database.base import Base
 
-
-class Base(DeclarativeBase):
-    pass
 
 
 class RouteAssignment(Base):
