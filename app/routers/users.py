@@ -8,6 +8,7 @@ from app.services.user_service import (
     create_user,
     login_user,
 )
+from fastapi.security import OAuth2PasswordRequestForm
 
 router = APIRouter(
     prefix="/users",
@@ -28,7 +29,7 @@ def create_new_user(
 
 @router.post("/login")
 def login(
-    login: UserLogin,
+    form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    return login_user(db, login)
+    return login_user(db, form_data)

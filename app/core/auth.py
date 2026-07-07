@@ -23,10 +23,13 @@ def create_access_token(data: dict):
 
 def decode_access_token(token: str):
     try:
-        return jwt.decode(
+        payload = jwt.decode(
             token,
             settings.secret_key,
             algorithms=[settings.algorithm]
         )
+
+        return payload
+
     except JWTError:
         return None

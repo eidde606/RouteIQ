@@ -9,6 +9,7 @@ from app.core.exceptions import BadRequestException
 from app.core.security import hash_password
 from app.models.user import UserCreate, UserLogin
 from app.repositories import user_repository
+from fastapi.security import OAuth2PasswordRequestForm
 
 
 def create_user(db: Session, user: UserCreate):
@@ -38,14 +39,23 @@ def create_user(db: Session, user: UserCreate):
     return user_repository.save(db, hashed_user)
 
 
+from fastapi.security import OAuth2PasswordRequestForm
+
 def login_user(
-        db: Session,
-        login: UserLogin
+    db: Session,
+    form_data: OAuth2PasswordRequestForm
 ):
+    print("Email entered:", form_data.username)
+
     user = get_user_by_email(
         db,
-        login.email
+        form_data.username
     )
+
+    print("User found:", user)
+
+    if user:
+        print("Stored hash:", user.hashed_password)
 
     if user is None:
         raise HTTPException(
@@ -53,10 +63,16 @@ def login_user(
             detail="Invalid email or password"
         )
 
-    if not verify_password(
-            login.password,
-            user.hashed_password
-    ):
+    print("Password entered:", form_data.password)
+
+    password_valid = verify_password(
+        form_data.password,
+        user.hashed_password
+    )
+
+    print("Password valid:", password_valid)
+
+    if not password_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
