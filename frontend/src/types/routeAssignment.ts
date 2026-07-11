@@ -6,3 +6,8 @@ export interface RouteAssignmentCreate {
     parcels: number;
     accountables: number;
 }
+
+export interface RouteAssignment extends RouteAssignmentCreate {
+    id: number;
+    date: string;
+}

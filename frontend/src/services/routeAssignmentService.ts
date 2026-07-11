@@ -21,3 +21,9 @@ export const deleteRouteAssignment = async (id: number) => {
 
     return response.data;
 }
+
+export const updateRouteAssignment = async (id: number, assignment: RouteAssignmentCreate) => {
+    const response = await api.put(`/route-assignments/${id}`, assignment);
+
+    return response.data;
+}

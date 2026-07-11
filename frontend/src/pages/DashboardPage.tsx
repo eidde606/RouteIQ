@@ -14,10 +14,15 @@ import {
     DialogActions,
 } from "@mui/material";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import {getRouteAssignments, createRouteAssignment, deleteRouteAssignment} from "../services/routeAssignmentService";
+import {
+    getRouteAssignments,
+    createRouteAssignment,
+    deleteRouteAssignment,
+    updateRouteAssignment
+} from "../services/routeAssignmentService";
 import {useState} from "react";
 import RouteAssignmentForm from "../components/RouteAssignmentForm";
-import type {RouteAssignmentCreate} from "../types/routeAssignment";
+import type {RouteAssignment, RouteAssignmentCreate} from "../types/routeAssignment";
 import Button from "@mui/material/Button";
 
 function DashboardPage() {
@@ -25,6 +30,8 @@ function DashboardPage() {
     const [open, setOpen] = useState(false);
 
     const [deleteId, setDeleteId] = useState<number | null>(null);
+
+    const [selectedAssignment, setSelectedAssignment] = useState<RouteAssignment | null>(null);
 
     const queryClient = useQueryClient();
 
@@ -40,23 +47,52 @@ function DashboardPage() {
         },
     });
 
+    const updateMutation = useMutation({
+        mutationFn: ({
+                         id,
+                         assignment,
+                     }: {
+            id: number;
+            assignment: RouteAssignmentCreate;
+        }) => updateRouteAssignment(id, assignment),
+
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["routeAssignments"],
+            });
+
+            setOpen(false);
+            setSelectedAssignment(null);
+        },
+    });
+
     const handleOpen = () => {
+        setSelectedAssignment(null)
         setOpen(true);
     }
 
     const handleClose = () => {
         setOpen(false);
+        setSelectedAssignment(null);
     }
 
     const handleSubmit = (formData: RouteAssignmentCreate) => {
-        createMutation.mutate({
+        const assignmentData = {
             ...formData,
             dps: Number(formData.dps),
             parcels: Number(formData.parcels),
             accountables: Number(formData.accountables),
-        });
-    };
+        };
 
+        if (selectedAssignment) {
+            updateMutation.mutate({
+                id: selectedAssignment.id,
+                assignment: assignmentData,
+            });
+        } else {
+            createMutation.mutate(assignmentData);
+        }
+    };
     const deleteMutation = useMutation({
         mutationFn: deleteRouteAssignment, onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["routeAssignments"],});
@@ -97,6 +133,7 @@ function DashboardPage() {
                 open={open}
                 onClose={handleClose}
                 onSubmit={handleSubmit}
+                assignment={selectedAssignment}
             />
 
             <Typography variant="h4">Dashboard</Typography>
@@ -121,6 +158,17 @@ function DashboardPage() {
                                 <TableCell>{assignment.date}</TableCell>
 
                                 <TableCell>
+                                    <Button
+                                        variant="contained"
+                                        sx={{mr: 1}}
+                                        onClick={() => {
+                                            setSelectedAssignment(assignment);
+                                            setOpen(true);
+                                        }}
+                                    >
+                                        Edit
+                                    </Button>
+
                                     <Button
                                         variant="contained"
                                         color="error"

@@ -5,7 +5,8 @@ import {
     DialogContent,
     DialogTitle, TextField,
 } from "@mui/material";
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import type {RouteAssignment} from "../types/routeAssignment.ts";
 
 interface RouteAssignmentFormData {
     carrier_name: string;
@@ -20,10 +21,17 @@ interface RouteAssignmentFormProps {
     open: boolean;
     onClose: () => void;
     onSubmit: (formData: RouteAssignmentFormData) => void;
+    assignment: RouteAssignment | null;
 }
 
 
-function RouteAssignmentForm({open, onClose, onSubmit,}: RouteAssignmentFormProps) {
+function RouteAssignmentForm({
+                                 open,
+                                 onClose,
+                                 onSubmit,
+                                 assignment,
+                             }: RouteAssignmentFormProps) {
+
     const [formData, setFormData] = useState({
         carrier_name: "",
         route_id: "",
@@ -31,7 +39,29 @@ function RouteAssignmentForm({open, onClose, onSubmit,}: RouteAssignmentFormProp
         dps: 0,
         parcels: 0,
         accountables: 0,
-    })
+    });
+
+    useEffect(() => {
+        if (assignment) {
+            setFormData({
+                carrier_name: assignment.carrier_name,
+                route_id: assignment.route_id,
+                office: assignment.office,
+                dps: assignment.dps,
+                parcels: assignment.parcels,
+                accountables: assignment.accountables,
+            });
+        } else {
+            setFormData({
+                carrier_name: "",
+                route_id: "",
+                office: "",
+                dps: 0,
+                parcels: 0,
+                accountables: 0,
+            });
+        }
+    }, [assignment]);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value} = event.target;
@@ -43,7 +73,9 @@ function RouteAssignmentForm({open, onClose, onSubmit,}: RouteAssignmentFormProp
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-            <DialogTitle>Create Route Assignment</DialogTitle>
+            <DialogTitle>
+                {assignment ? "Edit Route Assignment" : "Create Route Assignment"}
+            </DialogTitle>
 
             <DialogContent>
                 <TextField
@@ -100,8 +132,11 @@ function RouteAssignmentForm({open, onClose, onSubmit,}: RouteAssignmentFormProp
             <DialogActions>
                 <Button onClick={onClose}>Cancel</Button>
 
-                <Button variant="contained" onClick={() => onSubmit(formData)}>
-                    Save
+                <Button
+                    variant="contained"
+                    onClick={() => onSubmit(formData)}
+                >
+                    {assignment ? "Update" : "Save"}
                 </Button>
 
             </DialogActions>
