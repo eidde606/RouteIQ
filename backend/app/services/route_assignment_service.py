@@ -7,13 +7,7 @@ from app.repositories import route_assignment_repository
 
 
 def create_assignment(db: Session, assignment: RouteAssignmentCreate):
-    new_assignment = RouteAssignment(
-        id=0,
-        date=assignment.date,
-        route_id=assignment.route_id,
-        carrier_name=assignment.carrier_name,
-        office=assignment.office,
-    )
+    return route_assignment_repository.save(db, assignment)
 
     return route_assignment_repository.save(db, new_assignment)
 
@@ -75,10 +69,13 @@ def update_assignment(db: Session, id: int, updated_assignment: RouteAssignmentC
 
     new_assignment = RouteAssignment(
         id=id,
-        date=updated_assignment.date,
+        date=existing_assignment.date,
         route_id=updated_assignment.route_id,
         carrier_name=updated_assignment.carrier_name,
         office=updated_assignment.office,
+        dps=updated_assignment.dps,
+        parcels=updated_assignment.parcels,
+        accountables=updated_assignment.accountables,
     )
 
     return route_assignment_repository.update(db, id, new_assignment)

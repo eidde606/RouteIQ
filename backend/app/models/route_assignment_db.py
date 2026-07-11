@@ -14,3 +14,6 @@ class RouteAssignment(Base):
     route_id: Mapped[int] = mapped_column(Integer)
     carrier_name: Mapped[str] = mapped_column(String(100))
     office: Mapped[str] = mapped_column(String(100))
+    dps: Mapped[int] = mapped_column(Integer)
+    parcels: Mapped[int] = mapped_column(Integer)
+    accountables: Mapped[int] = mapped_column(Integer)

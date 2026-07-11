@@ -7,11 +7,19 @@ import {
 } from "@mui/material";
 import {useState} from "react";
 
+interface RouteAssignmentFormData {
+    carrier_name: string;
+    route_id: string;
+    office: string;
+    dps: number;
+    parcels: number;
+    accountables: number;
+}
 
 interface RouteAssignmentFormProps {
     open: boolean;
     onClose: () => void;
-    onSubmit: () => void;
+    onSubmit: (formData: RouteAssignmentFormData) => void;
 }
 
 
@@ -92,9 +100,10 @@ function RouteAssignmentForm({open, onClose, onSubmit,}: RouteAssignmentFormProp
             <DialogActions>
                 <Button onClick={onClose}>Cancel</Button>
 
-                <Button variant="contained" onClick={onSubmit}>
+                <Button variant="contained" onClick={() => onSubmit(formData)}>
                     Save
                 </Button>
+
             </DialogActions>
         </Dialog>
     );

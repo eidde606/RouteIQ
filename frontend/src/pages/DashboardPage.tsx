@@ -1,13 +1,27 @@
 import {Typography, TableCell, Table, TableHead, TableBody, TableRow, TableContainer, Paper} from "@mui/material"
-import {useQuery} from "@tanstack/react-query";
-import {getRouteAssignments} from "../services/routeAssignmentService";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import {getRouteAssignments, createRouteAssignment} from "../services/routeAssignmentService";
 import {useState} from "react";
 import RouteAssignmentForm from "../components/RouteAssignmentForm";
+import type {RouteAssignmentCreate} from "../types/routeAssignment";
 import Button from "@mui/material/Button";
 
 function DashboardPage() {
 
     const [open, setOpen] = useState(false);
+    const queryClient = useQueryClient();
+
+    const mutation = useMutation({
+        mutationFn: createRouteAssignment,
+
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["routeAssignments"],
+            });
+
+            setOpen(false);
+        },
+    });
 
     const handleOpen = () => {
         setOpen(true);
@@ -17,10 +31,14 @@ function DashboardPage() {
         setOpen(false);
     }
 
-    const handleSubmit = () => {
-        console.log("Submit route assignment");
-        setOpen(false);
-    }
+    const handleSubmit = (formData: RouteAssignmentCreate) => {
+        mutation.mutate({
+            ...formData,
+            dps: Number(formData.dps),
+            parcels: Number(formData.parcels),
+            accountables: Number(formData.accountables),
+        });
+    };
 
     const {
         data,
@@ -28,7 +46,7 @@ function DashboardPage() {
         error,
 
     } = useQuery({
-        queryKey: ["routeAssignment"],
+        queryKey: ["routeAssignments"],
         queryFn: getRouteAssignments,
     });
 
