@@ -12,6 +12,7 @@ import {
     DialogContent,
     DialogContentText,
     DialogActions,
+    Stack
 } from "@mui/material";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {
@@ -122,12 +123,24 @@ function DashboardPage() {
 
         <>
 
-            <Button
-                variant="contained"
-                onClick={handleOpen}
+            <Stack
+                direction="row"
+                spacing={2}
+                sx={{mb: 3}}
             >
-                Create Assignment
-            </Button>
+                <Button
+                    variant="contained"
+                    onClick={handleOpen}
+                >
+                    Create Assignment
+                </Button>
+
+                <Button
+                    variant="outlined"
+                >
+                    🤖 Analyze Today's Routes
+                </Button>
+            </Stack>
 
             <RouteAssignmentForm
                 open={open}
@@ -136,7 +149,7 @@ function DashboardPage() {
                 assignment={selectedAssignment}
             />
 
-            <Typography variant="h4">Dashboard</Typography>
+            <Typography variant="h4">RouteIQ Dashboard</Typography>
             <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
@@ -144,6 +157,9 @@ function DashboardPage() {
                             <TableCell>Route</TableCell>
                             <TableCell>Carrier</TableCell>
                             <TableCell>Office</TableCell>
+                            <TableCell>DPS</TableCell>
+                            <TableCell>Parcels</TableCell>
+                            <TableCell>Accountables</TableCell>
                             <TableCell>Date</TableCell>
                             <TableCell>Actions</TableCell>
                         </TableRow>
@@ -155,6 +171,9 @@ function DashboardPage() {
                                 <TableCell>{assignment.route_id}</TableCell>
                                 <TableCell>{assignment.carrier_name}</TableCell>
                                 <TableCell>{assignment.office}</TableCell>
+                                <TableCell>{assignment.dps}</TableCell>
+                                <TableCell>{assignment.parcels}</TableCell>
+                                <TableCell>{assignment.accountables}</TableCell>
                                 <TableCell>{assignment.date}</TableCell>
 
                                 <TableCell>
