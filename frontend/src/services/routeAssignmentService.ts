@@ -15,3 +15,9 @@ export async function createRouteAssignment(formData: RouteAssignmentCreate) {
 
     return response.data;
 }
+
+export const deleteRouteAssignment = async (id: number) => {
+    const response = await api.delete(`/route-assignments/${id}`);
+
+    return response.data;
+}

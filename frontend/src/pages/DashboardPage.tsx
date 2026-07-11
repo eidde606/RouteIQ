@@ -1,6 +1,20 @@
-import {Typography, TableCell, Table, TableHead, TableBody, TableRow, TableContainer, Paper} from "@mui/material"
+import {
+    Typography,
+    TableCell,
+    Table,
+    TableHead,
+    TableBody,
+    TableRow,
+    TableContainer,
+    Paper,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+} from "@mui/material";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import {getRouteAssignments, createRouteAssignment} from "../services/routeAssignmentService";
+import {getRouteAssignments, createRouteAssignment, deleteRouteAssignment} from "../services/routeAssignmentService";
 import {useState} from "react";
 import RouteAssignmentForm from "../components/RouteAssignmentForm";
 import type {RouteAssignmentCreate} from "../types/routeAssignment";
@@ -9,9 +23,12 @@ import Button from "@mui/material/Button";
 function DashboardPage() {
 
     const [open, setOpen] = useState(false);
+
+    const [deleteId, setDeleteId] = useState<number | null>(null);
+
     const queryClient = useQueryClient();
 
-    const mutation = useMutation({
+    const createMutation = useMutation({
         mutationFn: createRouteAssignment,
 
         onSuccess: () => {
@@ -32,13 +49,19 @@ function DashboardPage() {
     }
 
     const handleSubmit = (formData: RouteAssignmentCreate) => {
-        mutation.mutate({
+        createMutation.mutate({
             ...formData,
             dps: Number(formData.dps),
             parcels: Number(formData.parcels),
             accountables: Number(formData.accountables),
         });
     };
+
+    const deleteMutation = useMutation({
+        mutationFn: deleteRouteAssignment, onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["routeAssignments"],});
+        }
+    });
 
     const {
         data,
@@ -85,6 +108,7 @@ function DashboardPage() {
                             <TableCell>Carrier</TableCell>
                             <TableCell>Office</TableCell>
                             <TableCell>Date</TableCell>
+                            <TableCell>Actions</TableCell>
                         </TableRow>
                     </TableHead>
 
@@ -95,11 +119,53 @@ function DashboardPage() {
                                 <TableCell>{assignment.carrier_name}</TableCell>
                                 <TableCell>{assignment.office}</TableCell>
                                 <TableCell>{assignment.date}</TableCell>
+
+                                <TableCell>
+                                    <Button
+                                        variant="contained"
+                                        color="error"
+                                        onClick={() => setDeleteId(assignment.id)}
+                                    >
+                                        Delete
+                                    </Button>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
             </TableContainer>
+
+            <Dialog
+                open={deleteId !== null}
+                onClose={() => setDeleteId(null)}
+            >
+                <DialogTitle>Delete Route Assignment</DialogTitle>
+
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to delete this route assignment?
+                    </DialogContentText>
+                </DialogContent>
+
+                <DialogActions>
+                    <Button onClick={() => setDeleteId(null)}>
+                        Cancel
+                    </Button>
+
+                    <Button
+                        color="error"
+                        onClick={() => {
+                            if (deleteId !== null) {
+                                deleteMutation.mutate(deleteId);
+                            }
+
+                            setDeleteId(null);
+                        }}
+                    >
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </>
     )
 
