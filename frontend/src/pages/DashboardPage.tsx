@@ -1,3 +1,4 @@
+import {useNavigate} from "react-router-dom";
 import {
     Typography,
     TableCell,
@@ -12,7 +13,8 @@ import {
     DialogContent,
     DialogContentText,
     DialogActions,
-    Stack
+    Stack,
+    Container,
 } from "@mui/material";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {
@@ -25,6 +27,7 @@ import {useState} from "react";
 import RouteAssignmentForm from "../components/RouteAssignmentForm";
 import type {RouteAssignment, RouteAssignmentCreate} from "../types/routeAssignment";
 import Button from "@mui/material/Button";
+import useAuthStore from "../store/authStore";
 
 function DashboardPage() {
 
@@ -33,6 +36,9 @@ function DashboardPage() {
     const [deleteId, setDeleteId] = useState<number | null>(null);
 
     const [selectedAssignment, setSelectedAssignment] = useState<RouteAssignment | null>(null);
+
+    const logout = useAuthStore((state) => state.logout);
+    const navigate = useNavigate();
 
     const queryClient = useQueryClient();
 
@@ -119,9 +125,28 @@ function DashboardPage() {
     }
 
     return (
+        <Container maxWidth="xl" sx={{mt: 4, mb: 4}}>
+            <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                sx={{mb: 3}}
+            >
+                <Typography variant="h4">
+                    RouteIQ Dashboard
+                </Typography>
 
-
-        <>
+                <Button
+                    color="error"
+                    variant="outlined"
+                    onClick={() => {
+                        logout();
+                        navigate("/");
+                    }}
+                >
+                    Logout
+                </Button>
+            </Stack>
 
             <Stack
                 direction="row"
@@ -149,7 +174,6 @@ function DashboardPage() {
                 assignment={selectedAssignment}
             />
 
-            <Typography variant="h4">RouteIQ Dashboard</Typography>
             <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
@@ -233,7 +257,7 @@ function DashboardPage() {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </>
+        </Container>
     )
 
 }

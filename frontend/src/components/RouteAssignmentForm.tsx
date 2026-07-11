@@ -73,73 +73,88 @@ function RouteAssignmentForm({
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-            <DialogTitle>
-                {assignment ? "Edit Route Assignment" : "Create Route Assignment"}
-            </DialogTitle>
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    onSubmit(formData);
+                }}
+            >
+                <DialogTitle>
+                    {assignment ? "Edit Route Assignment" : "Create Route Assignment"}
+                </DialogTitle>
 
-            <DialogContent>
-                <TextField
-                    label="Carrier Name"
-                    name="carrier_name"
-                    fullWidth
-                    margin="normal"
-                    value={formData.carrier_name}
-                    onChange={handleChange}
-                />
-                <TextField
-                    label="Route Number"
-                    name="route_id"
-                    fullWidth margin="normal"
-                    value={formData.route_id}
-                    onChange={handleChange}
-                />
+                <DialogContent>
+                    <TextField
+                        label="Carrier Name"
+                        name="carrier_name"
+                        fullWidth
+                        margin="normal"
+                        value={formData.carrier_name}
+                        onChange={handleChange}
+                    />
 
-                <TextField
-                    label="Office"
-                    name="office"
-                    fullWidth margin="normal"
-                    value={formData.office}
-                    onChange={handleChange}
-                />
+                    <TextField
+                        label="Route Number"
+                        name="route_id"
+                        fullWidth
+                        margin="normal"
+                        value={formData.route_id}
+                        onChange={handleChange}
+                    />
 
-                <TextField
-                    label="DPS"
-                    name="dps"
-                    type="number"
-                    fullWidth margin="normal"
-                    value={formData.dps}
-                    onChange={handleChange}
-                />
-                <TextField
-                    label="Parcels"
-                    name="parcels"
-                    type="number"
-                    fullWidth margin="normal"
-                    value={formData.parcels}
-                    onChange={handleChange}
-                />
-                <TextField
-                    label="Accountables"
-                    name="accountables"
-                    type="number"
-                    fullWidth margin="normal"
-                    value={formData.accountables}
-                    onChange={handleChange}
-                />
+                    <TextField
+                        label="Office"
+                        name="office"
+                        fullWidth
+                        margin="normal"
+                        value={formData.office}
+                        onChange={handleChange}
+                    />
 
-            </DialogContent>
+                    <TextField
+                        label="DPS"
+                        name="dps"
+                        type="number"
+                        fullWidth
+                        margin="normal"
+                        value={formData.dps}
+                        onChange={handleChange}
+                    />
 
-            <DialogActions>
-                <Button onClick={onClose}>Cancel</Button>
+                    <TextField
+                        label="Parcels"
+                        name="parcels"
+                        type="number"
+                        fullWidth
+                        margin="normal"
+                        value={formData.parcels}
+                        onChange={handleChange}
+                    />
 
-                <Button
-                    variant="contained"
-                    onClick={() => onSubmit(formData)}
-                >
-                    {assignment ? "Update" : "Save"}
-                </Button>
+                    <TextField
+                        label="Accountables"
+                        name="accountables"
+                        type="number"
+                        fullWidth
+                        margin="normal"
+                        value={formData.accountables}
+                        onChange={handleChange}
+                    />
+                </DialogContent>
 
-            </DialogActions>
+                <DialogActions>
+                    <Button onClick={onClose}>
+                        Cancel
+                    </Button>
+
+                    <Button
+                        type="submit"
+                        variant="contained"
+                    >
+                        {assignment ? "Update" : "Save"}
+                    </Button>
+                </DialogActions>
+            </form>
         </Dialog>
     );
 }
