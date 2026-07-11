@@ -77,7 +77,7 @@ def update_route_assignment(
 def delete_route_assignment(
         assignment_id: int,
         db: Session = Depends(get_db),
-        current_user: dict = Depends(require_roles("admin"))
+        current_user: dict = Depends(require_roles("admin","manager", "supervisor"))
 ):
     deleted_assignment = delete_assignment(db, assignment_id)
 
