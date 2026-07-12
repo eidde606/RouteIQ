@@ -16,7 +16,9 @@ import {
     Stack,
     Container,
     Button,
-    Box
+    Box,
+    Card,
+    CardContent,
 } from "@mui/material";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {
@@ -29,6 +31,7 @@ import {useState} from "react";
 import RouteAssignmentForm from "../components/RouteAssignmentForm";
 import type {RouteAssignment, RouteAssignmentCreate} from "../types/routeAssignment";
 import useAuthStore from "../store/authStore";
+import {analyzeRoutes} from "../services/aiService";
 
 function DashboardPage() {
 
@@ -107,6 +110,10 @@ function DashboardPage() {
         }
     });
 
+    const aiMutation = useMutation({
+        mutationFn: analyzeRoutes,
+    })
+
     const {
         data,
         isLoading,
@@ -136,9 +143,25 @@ function DashboardPage() {
                     mb: 3,
                 }}
             >
-                <Typography variant="h4">
-                    RouteIQ Dashboard
-                </Typography>
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        mb: 3,
+                    }}
+                >
+                    <Typography variant="h4">
+                        RouteIQ Dashboard
+                    </Typography>
+
+                    <Typography
+                        variant="body1"
+                        color="text.secondary"
+                        sx={{mt: 1}}
+                    >
+                        Manage daily route assignments and workload recommendations.
+                    </Typography>
+                </Box>
 
                 <Button
                     color="error"
@@ -166,10 +189,53 @@ function DashboardPage() {
 
                 <Button
                     variant="outlined"
+                    onClick={() => aiMutation.mutate()}
+                    disabled={aiMutation.isPending}
                 >
-                    🤖 Analyze Today's Routes
+                    {aiMutation.isPending
+                        ? "Analyzing Route Assignments..."
+                        : "Analyze Route Assignments"}
                 </Button>
             </Stack>
+
+            {aiMutation.isPending && (
+                <Card sx={{mb: 3}}>
+                    <CardContent>
+                        <Typography>
+                            Analyzing today's route assignments...
+                        </Typography>
+                    </CardContent>
+                </Card>
+            )}
+
+            {aiMutation.data && (
+                <Card
+                    sx={{
+                        mb: 3,
+                        maxWidth: 900,
+                        borderRadius: 2,
+                        boxShadow: 3,
+                        bgcolor: "#fafafa"
+                    }}
+                >
+                    <CardContent>
+                        <Typography variant="h6" gutterBottom>
+                            Today's Workload Recommendation
+                        </Typography>
+
+                        <Typography sx={{whiteSpace: "pre-line"}}>
+
+                            {aiMutation.data.recommendation}
+                        </Typography>
+                    </CardContent>
+                </Card>
+            )}
+
+            {aiMutation.error && (
+                <Typography color="error" sx={{mb: 2}}>
+                    Failed to analyze today's routes.
+                </Typography>
+            )}
 
             <RouteAssignmentForm
                 open={open}

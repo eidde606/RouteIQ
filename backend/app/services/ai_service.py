@@ -6,29 +6,35 @@ from app.services.openai_service import get_ai_recommendation
 
 def build_prompt(assignments):
     prompt = """
-You are an AI assistant helping USPS supervisors.
+    You are an AI assistant helping USPS supervisors balance carrier workloads.
 
-Analyze today's route assignments.
+    Analyze today's route assignments.
 
-Determine which carrier is most likely to work over 8 hours.
+    Determine which carrier is most likely to exceed an 8-hour workday.
 
-Recommend which carrier should assist the overloaded route.
+    Recommend the best helper carrier based on the lightest workload.
 
-Each route contains:
-- DPS = letter volume
-- Parcels = package volume
-- Accountables = certified mail and signatures
+    Use the following factors:
+    - DPS (letter volume)
+    - Parcels (package volume)
+    - Accountables (certified mail and signatures)
 
-Higher values generally indicate a heavier workload and a greater chance of exceeding an 8-hour workday.
+    Higher values generally indicate a heavier workload.
 
-Return:
-- The route predicted to exceed 8 hours
-- The recommended helper carrier
-- A brief explanation of your reasoning
+    Return your response using exactly this format:
 
-Today's route assignments:
+    Route Predicted to Exceed 8 Hours:
+    <route number and carrier>
 
-"""
+    Recommended Helper:
+    <route number and carrier>
+
+    Reasoning:
+    <2-4 concise sentences explaining your recommendation based on the workload data>
+
+    Today's route assignments:
+
+    """
     for assignment in assignments:
         prompt += f"""
     Route: {assignment.route_id}
