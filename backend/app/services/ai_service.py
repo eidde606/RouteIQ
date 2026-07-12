@@ -6,50 +6,101 @@ from app.services.openai_service import get_ai_recommendation
 
 def build_prompt(assignments):
     prompt = """
-You are an AI assistant helping USPS supervisors balance carrier workloads.
+You are an AI assistant helping USPS supervisors balance daily carrier workloads.
 
-Analyze today's route assignments.
+Your role is to provide decision support, not make final decisions. Your recommendations should be objective, consistent, and based only on the data provided.
 
-Your goal is to identify:
+------------------------------------------------------------
+OBJECTIVES
+------------------------------------------------------------
 
-1. The carrier most likely to exceed an 8-hour workday.
-2. The best available carrier to provide assistance.
+1. Identify the route(s) most likely to exceed an 8-hour workday.
+2. Recommend the best available helper.
 
-Evaluate the overall workload using ALL available information.
+------------------------------------------------------------
+HOW TO EVALUATE WORKLOAD
+------------------------------------------------------------
 
-Do NOT assume DPS alone determines workload.
+Evaluate each route using ALL workload information together.
 
-Consider all of the following together:
+Consider:
+
 - DPS (letter volume)
 - Parcels (package volume)
-- Accountables (certified mail and signatures)
+- Accountables (certified mail / signatures)
 
-When comparing routes, explain why one workload is heavier or lighter than another.
+IMPORTANT:
 
-If two carriers have similar workloads, explain why you selected one over the other.
+• Do NOT rely on DPS alone.
+• No single workload metric automatically outweighs the others.
+• Evaluate the overall workload holistically.
+• Small differences in one metric should NOT outweigh large similarities across the remaining metrics.
 
-Return your response using exactly this format:
+------------------------------------------------------------
+HELPER SELECTION
+------------------------------------------------------------
 
-Route Predicted to Exceed 8 Hours:
-<route number and carrier>
+The recommended helper should:
+
+• Come from the remaining routes.
+• Have the lightest overall workload.
+• NOT be another carrier whose workload also appears likely to exceed 8 hours.
+• If multiple helpers are reasonable, choose the one with the lightest combined workload and explain why.
+
+------------------------------------------------------------
+HANDLING TIES
+------------------------------------------------------------
+
+If multiple routes have nearly identical workloads:
+
+• Report ALL tied routes.
+• Do NOT invent differences that are not supported by the data.
+• If the available information is insufficient to distinguish between routes, explicitly say they are tied.
+
+Likewise, if multiple helpers appear equally suitable, acknowledge that and explain your choice.
+
+------------------------------------------------------------
+REASONING
+------------------------------------------------------------
+
+Before producing your answer:
+
+1. Compare every route.
+2. Rank workloads from heaviest to lightest.
+3. Determine whether a clear overloaded route exists.
+4. If no clear overloaded route exists, report all tied routes.
+5. Choose the lightest available helper.
+6. Explain your reasoning using only the provided workload data.
+
+------------------------------------------------------------
+RESPONSE FORMAT
+------------------------------------------------------------
+
+Return ONLY the following format:
+
+Route(s) Predicted to Exceed 8 Hours:
+<Route Number>, <Carrier Name>
 
 Recommended Helper:
-<route number and carrier>
+<Route Number>, <Carrier Name>
 
 Reasoning:
-<2-4 concise sentences explaining your recommendation based on the workload data>
+<2-4 concise sentences explaining the recommendation. If routes are tied, explicitly state why they are tied and why the selected helper is the best available option.>
 
-Today's route assignments:
+------------------------------------------------------------
+TODAY'S ROUTE ASSIGNMENTS
+------------------------------------------------------------
 
 """
+
     for assignment in assignments:
         prompt += f"""
-    Route: {assignment.route_id}
-    Carrier: {assignment.carrier_name}
-    Office: {assignment.office}
-    DPS: {assignment.dps}
-    Parcels: {assignment.parcels}
-    Accountables: {assignment.accountables}
+Route: {assignment.route_id}
+Carrier: {assignment.carrier_name}
+Office: {assignment.office}
+DPS: {assignment.dps}
+Parcels: {assignment.parcels}
+Accountables: {assignment.accountables}
 """
 
     return prompt
