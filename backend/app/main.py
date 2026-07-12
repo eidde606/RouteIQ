@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.logging_config import logger
 from app.routers.route_assignments import router as router_assignments_router
 from app.routers.users import router as users_router
+from app.routers.ai_router import router as ai_router
 
 from app.core.exceptions import (
     NotFoundException,
@@ -36,6 +37,8 @@ app.add_exception_handler(BadRequestException, bad_request_exception_handler)
 
 app.include_router(router_assignments_router)
 app.include_router(users_router)
+
+app.include_router(ai_router)
 
 
 @app.on_event("startup")
