@@ -6,35 +6,42 @@ from app.services.openai_service import get_ai_recommendation
 
 def build_prompt(assignments):
     prompt = """
-    You are an AI assistant helping USPS supervisors balance carrier workloads.
+You are an AI assistant helping USPS supervisors balance carrier workloads.
 
-    Analyze today's route assignments.
+Analyze today's route assignments.
 
-    Determine which carrier is most likely to exceed an 8-hour workday.
+Your goal is to identify:
 
-    Recommend the best helper carrier based on the lightest workload.
+1. The carrier most likely to exceed an 8-hour workday.
+2. The best available carrier to provide assistance.
 
-    Use the following factors:
-    - DPS (letter volume)
-    - Parcels (package volume)
-    - Accountables (certified mail and signatures)
+Evaluate the overall workload using ALL available information.
 
-    Higher values generally indicate a heavier workload.
+Do NOT assume DPS alone determines workload.
 
-    Return your response using exactly this format:
+Consider all of the following together:
+- DPS (letter volume)
+- Parcels (package volume)
+- Accountables (certified mail and signatures)
 
-    Route Predicted to Exceed 8 Hours:
-    <route number and carrier>
+When comparing routes, explain why one workload is heavier or lighter than another.
 
-    Recommended Helper:
-    <route number and carrier>
+If two carriers have similar workloads, explain why you selected one over the other.
 
-    Reasoning:
-    <2-4 concise sentences explaining your recommendation based on the workload data>
+Return your response using exactly this format:
 
-    Today's route assignments:
+Route Predicted to Exceed 8 Hours:
+<route number and carrier>
 
-    """
+Recommended Helper:
+<route number and carrier>
+
+Reasoning:
+<2-4 concise sentences explaining your recommendation based on the workload data>
+
+Today's route assignments:
+
+"""
     for assignment in assignments:
         prompt += f"""
     Route: {assignment.route_id}
