@@ -15,6 +15,8 @@ import {
     DialogActions,
     Stack,
     Container,
+    Button,
+    Box
 } from "@mui/material";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {
@@ -26,7 +28,6 @@ import {
 import {useState} from "react";
 import RouteAssignmentForm from "../components/RouteAssignmentForm";
 import type {RouteAssignment, RouteAssignmentCreate} from "../types/routeAssignment";
-import Button from "@mui/material/Button";
 import useAuthStore from "../store/authStore";
 
 function DashboardPage() {
@@ -126,11 +127,14 @@ function DashboardPage() {
 
     return (
         <Container maxWidth="xl" sx={{mt: 4, mb: 4}}>
-            <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-                sx={{mb: 3}}
+            <Box
+                sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 3,
+                }}
             >
                 <Typography variant="h4">
                     RouteIQ Dashboard
@@ -141,12 +145,12 @@ function DashboardPage() {
                     variant="outlined"
                     onClick={() => {
                         logout();
-                        navigate("/");
+                        navigate("/login");
                     }}
                 >
                     Logout
                 </Button>
-            </Stack>
+            </Box>
 
             <Stack
                 direction="row"

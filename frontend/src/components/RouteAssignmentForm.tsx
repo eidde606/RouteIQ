@@ -24,22 +24,19 @@ interface RouteAssignmentFormProps {
     assignment: RouteAssignment | null;
 }
 
+const emptyForm = {
+    carrier_name: "",
+    route_id: "",
+    office: "",
+    dps: 0,
+    parcels: 0,
+    accountables: 0,
+};
 
-function RouteAssignmentForm({
-                                 open,
-                                 onClose,
-                                 onSubmit,
-                                 assignment,
-                             }: RouteAssignmentFormProps) {
 
-    const [formData, setFormData] = useState({
-        carrier_name: "",
-        route_id: "",
-        office: "",
-        dps: 0,
-        parcels: 0,
-        accountables: 0,
-    });
+function RouteAssignmentForm({open, onClose, onSubmit, assignment,}: RouteAssignmentFormProps) {
+
+    const [formData, setFormData] = useState(emptyForm);
 
     useEffect(() => {
         if (assignment) {
@@ -52,14 +49,7 @@ function RouteAssignmentForm({
                 accountables: assignment.accountables,
             });
         } else {
-            setFormData({
-                carrier_name: "",
-                route_id: "",
-                office: "",
-                dps: 0,
-                parcels: 0,
-                accountables: 0,
-            });
+            setFormData(emptyForm);
         }
     }, [assignment]);
 
