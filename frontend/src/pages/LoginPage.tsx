@@ -7,26 +7,67 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {useState} from "react";
+import {useNavigate} from "react-router-dom";
 
-import { login } from "../services/authService";
+import {login} from "../services/authService";
 import useAuthStore from "../store/authStore";
 
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {z} from "zod";
+
+const schema = z.object({
+    username: z
+        .string()
+        .trim()
+        .min(1, "Email is required.")
+        .email("Please enter a valid email address."),
+
+    password: z
+        .string()
+        .min(8, "Password must be at least 8 characters."),
+});
+
+type LoginFormData = z.infer<typeof schema>;
+
 function LoginPage() {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-
-    const setToken = useAuthStore((state) => state.setToken);
     const navigate = useNavigate();
+    const setToken = useAuthStore((state) => state.setToken);
 
-    const handleLogin = async () => {
+    const [loginError, setLoginError] = useState("");
+
+    const {
+        register,
+        handleSubmit,
+        formState: {errors, isSubmitting},
+    } = useForm<LoginFormData>({
+        resolver: zodResolver(schema),
+    });
+
+    const onSubmit = async (data: LoginFormData) => {
+        setLoginError("");
+
         try {
-            const data = await login(username, password);
-            setToken(data.access_token);
+            const response = await login(
+                data.username,
+                data.password
+            );
+
+            setToken(response.access_token);
             navigate("/dashboard");
         } catch (error) {
-            console.log(error);
+            console.error(error);
+
+            if (axios.isAxiosError(error)) {
+                if (error.response?.status === 401) {
+                    setLoginError("Invalid username or password.");
+                } else {
+                    setLoginError("Unable to sign in. Please try again.");
+                }
+            } else {
+                setLoginError("An unexpected error occurred.");
+            }
         }
     };
 
@@ -48,7 +89,7 @@ function LoginPage() {
                     boxShadow: 4,
                 }}
             >
-                <CardContent sx={{ p: 5 }}>
+                <CardContent sx={{p: 5}}>
                     <Typography
                         variant="h4"
                         align="center"
@@ -61,49 +102,59 @@ function LoginPage() {
                         variant="subtitle1"
                         align="center"
                         color="text.secondary"
-                        sx={{ mb: 4 }}
+                        sx={{mb: 4}}
                     >
                         USPS Route Management System
                     </Typography>
 
-                    <Stack spacing={3}>
-                        <TextField
-                            label="Username"
-                            variant="outlined"
-                            value={username}
-                            onChange={(event) =>
-                                setUsername(event.target.value)
-                            }
-                            fullWidth
-                        />
+                    <form onSubmit={handleSubmit(onSubmit)}>
+                        <Stack spacing={3}>
+                            <TextField
+                                label="Email"
+                                placeholder="you@example.com"
+                                fullWidth
+                                error={!!errors.username}
+                                helperText={errors.username?.message}
+                                {...register("username")}
+                            />
 
-                        <TextField
-                            label="Password"
-                            type="password"
-                            variant="outlined"
-                            value={password}
-                            onChange={(event) =>
-                                setPassword(event.target.value)
-                            }
-                            fullWidth
-                        />
+                            <TextField
+                                label="Password"
+                                type="password"
+                                fullWidth
+                                error={!!errors.password}
+                                helperText={errors.password?.message}
+                                {...register("password")}
+                            />
 
-                        <Button
-                            variant="contained"
-                            size="large"
-                            fullWidth
-                            onClick={handleLogin}
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                size="large"
+                                fullWidth
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? "Signing In..." : "Sign In"}
+                            </Button>
+                        </Stack>
+                    </form>
+
+                    {loginError && (
+                        <Typography
+                            color="error"
+                            align="center"
+                            sx={{mt: 2}}
                         >
-                            Sign In
-                        </Button>
-                    </Stack>
+                            {loginError}
+                        </Typography>
+                    )}
 
                     <Typography
                         variant="caption"
                         color="text.secondary"
                         align="center"
                         display="block"
-                        sx={{ mt: 4 }}
+                        sx={{mt: 4}}
                     >
                         Internal Use Only
                     </Typography>
