@@ -2,105 +2,63 @@ from sqlalchemy.orm import Session
 
 from app.services.route_assignment_service import get_all_route_assignments
 from app.services.openai_service import get_ai_recommendation
+from app.services.workload_service import WorkloadService
 
 
-def build_prompt(assignments):
-    prompt = """
-You are an AI assistant helping USPS supervisors balance daily carrier workloads.
-
-Your role is to provide decision support, not make final decisions. Your recommendations should be objective, consistent, and based only on the data provided.
-
-------------------------------------------------------------
-OBJECTIVES
-------------------------------------------------------------
-
-1. Identify the route(s) most likely to exceed an 8-hour workday.
-2. Recommend the best available helper.
-
-------------------------------------------------------------
-HOW TO EVALUATE WORKLOAD
-------------------------------------------------------------
-
-Evaluate each route using ALL workload information together.
-
-Consider:
-
-- DPS (letter volume)
-- Parcels (package volume)
-- Accountables (certified mail / signatures)
+def build_prompt(
+    overloaded_route,
+    best_helper,
+):
+    return f"""
+You are an AI assistant helping USPS supervisors explain workload balancing decisions.
 
 IMPORTANT:
 
-• Do NOT rely on DPS alone.
-• No single workload metric automatically outweighs the others.
-• Evaluate the overall workload holistically.
-• Small differences in one metric should NOT outweigh large similarities across the remaining metrics.
+A deterministic Python workload engine has ALREADY analyzed today's workload.
+
+Your job is NOT to make a decision.
+
+Do NOT change the recommendation.
+
+Do NOT suggest different routes.
+
+Simply explain WHY the recommendation below makes sense.
 
 ------------------------------------------------------------
-HELPER SELECTION
+OVERLOADED ROUTE
 ------------------------------------------------------------
 
-The recommended helper should:
+Route: {overloaded_route.assignment.route_id}
+Carrier: {overloaded_route.assignment.carrier_name}
 
-• Come from the remaining routes.
-• Have the lightest overall workload.
-• NOT be another carrier whose workload also appears likely to exceed 8 hours.
-• If multiple helpers are reasonable, choose the one with the lightest combined workload and explain why.
+Workload:
+- DPS: {overloaded_route.assignment.dps}
+- Parcels: {overloaded_route.assignment.parcels}
+- Accountables: {overloaded_route.assignment.accountables}
 
-------------------------------------------------------------
-HANDLING TIES
-------------------------------------------------------------
-
-If multiple routes have nearly identical workloads:
-
-• Report ALL tied routes.
-• Do NOT invent differences that are not supported by the data.
-• If the available information is insufficient to distinguish between routes, explicitly say they are tied.
-
-Likewise, if multiple helpers appear equally suitable, acknowledge that and explain your choice.
+Calculated Score:
+{overloaded_route.score:.2f}
 
 ------------------------------------------------------------
-REASONING
+RECOMMENDED HELPER
 ------------------------------------------------------------
 
-Before producing your answer:
+Route: {best_helper.assignment.route_id}
+Carrier: {best_helper.assignment.carrier_name}
 
-1. Compare every route.
-2. Rank workloads from heaviest to lightest.
-3. Determine whether a clear overloaded route exists.
-4. If no clear overloaded route exists, report all tied routes.
-5. Choose the lightest available helper.
-6. Explain your reasoning using only the provided workload data.
+Workload:
+- DPS: {best_helper.assignment.dps}
+- Parcels: {best_helper.assignment.parcels}
+- Accountables: {best_helper.assignment.accountables}
 
-------------------------------------------------------------
-RESPONSE FORMAT
-------------------------------------------------------------
-
-Return ONLY the following format:
-
-Route(s) Predicted to Exceed 8 Hours:
-<Route Number>, <Carrier Name>
-
-Recommended Helper:
-<Route Number>, <Carrier Name>
-
-Reasoning:
-<2-4 concise sentences explaining the recommendation. If routes are tied, explicitly state why they are tied and why the selected helper is the best available option.>
+Calculated Score:
+{best_helper.score:.2f}
 
 ------------------------------------------------------------
-TODAY'S ROUTE ASSIGNMENTS
+TASK
 ------------------------------------------------------------
 
-"""
-
-    for assignment in assignments:
-        prompt += f"""
-Route: {assignment.route_id}
-Carrier: {assignment.carrier_name}
-Office: {assignment.office}
-DPS: {assignment.dps}
-Parcels: {assignment.parcels}
-Accountables: {assignment.accountables}
+Write 2–3 concise sentences explaining why the overloaded route is expected to require assistance and why the selected helper is the best available option based on the workload information above.
 """
 
     return prompt
@@ -115,10 +73,29 @@ def analyze_routes(db: Session):
 
     assignments = assignments_response["data"]
 
-    prompt = build_prompt(assignments)
+    scored_routes = WorkloadService.score_routes(assignments)
+
+    overloaded_route = WorkloadService.get_overloaded_route(scored_routes)
+
+    best_helper = WorkloadService.get_best_helper(
+        scored_routes,
+        overloaded_route,
+    )
+
+    prompt = build_prompt(overloaded_route, best_helper)
 
     recommendation = get_ai_recommendation(prompt)
 
     return {
+        "overloaded_route": {
+            "route_id": overloaded_route.assignment.route_id,
+            "carrier_name": overloaded_route.assignment.carrier_name,
+            "score": round(overloaded_route.score, 2),
+        },
+        "recommended_helper": {
+            "route_id": best_helper.assignment.route_id,
+            "carrier_name": best_helper.assignment.carrier_name,
+            "score": round(best_helper.score, 2),
+        },
         "recommendation": recommendation,
     }
