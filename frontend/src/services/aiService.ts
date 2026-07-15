@@ -1,7 +1,14 @@
 import api from "../api/axios"
 
+export interface RouteRecommendation {
+    route_id: number;
+    carrier_name: string;
+    score: number;
+}
 
 export interface AIRecommendationResponse {
+    overloaded_route: RouteRecommendation;
+    recommended_helper: RouteRecommendation;
     recommendation: string;
 }
 

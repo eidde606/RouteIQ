@@ -215,7 +215,6 @@ function DashboardPage() {
                         maxWidth: 900,
                         borderRadius: 2,
                         boxShadow: 3,
-                        bgcolor: "#fafafa"
                     }}
                 >
                     <CardContent>
@@ -223,8 +222,43 @@ function DashboardPage() {
                             Today's Workload Recommendation
                         </Typography>
 
-                        <Typography sx={{whiteSpace: "pre-line"}}>
+                        <Typography variant="subtitle1" fontWeight="bold" sx={{mt: 2}}>
+                            Predicted to Exceed 8 Hours
+                        </Typography>
 
+                        <Typography>
+                            Route {aiMutation.data.overloaded_route.route_id}
+                        </Typography>
+
+                        <Typography>
+                            Carrier: {aiMutation.data.overloaded_route.carrier_name}
+                        </Typography>
+
+                        <Typography>
+                            Workload Score: {aiMutation.data.overloaded_route.score}
+                        </Typography>
+
+                        <Typography variant="subtitle1" fontWeight="bold" sx={{mt: 3}}>
+                            Recommended Helper
+                        </Typography>
+
+                        <Typography>
+                            Route {aiMutation.data.recommended_helper.route_id}
+                        </Typography>
+
+                        <Typography>
+                            Carrier: {aiMutation.data.recommended_helper.carrier_name}
+                        </Typography>
+
+                        <Typography>
+                            Workload Score: {aiMutation.data.recommended_helper.score}
+                        </Typography>
+
+                        <Typography variant="subtitle1" fontWeight="bold" sx={{mt: 3}}>
+                            Explanation
+                        </Typography>
+
+                        <Typography sx={{whiteSpace: "pre-line"}}>
                             {aiMutation.data.recommendation}
                         </Typography>
                     </CardContent>
