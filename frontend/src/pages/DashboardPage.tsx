@@ -25,21 +25,26 @@ import {
     getRouteAssignments,
     createRouteAssignment,
     deleteRouteAssignment,
-    updateRouteAssignment
+    updateRouteAssignment,
 } from "../services/routeAssignmentService";
 import {useState} from "react";
 import RouteAssignmentForm from "../components/RouteAssignmentForm";
-import type {RouteAssignment, RouteAssignmentCreate} from "../types/routeAssignment";
+import AnalyticsCards from "../components/AnalyticsCards";
+import type {
+    RouteAssignment,
+    RouteAssignmentCreate,
+} from "../types/routeAssignment";
 import useAuthStore from "../store/authStore";
 import {analyzeRoutes} from "../services/aiService";
+import AIRecommendationCard from "../components/AIRecommendationsCard.tsx";
 
 function DashboardPage() {
-
     const [open, setOpen] = useState(false);
 
     const [deleteId, setDeleteId] = useState<number | null>(null);
 
-    const [selectedAssignment, setSelectedAssignment] = useState<RouteAssignment | null>(null);
+    const [selectedAssignment, setSelectedAssignment] =
+        useState<RouteAssignment | null>(null);
 
     const logout = useAuthStore((state) => state.logout);
     const navigate = useNavigate();
@@ -77,15 +82,38 @@ function DashboardPage() {
         },
     });
 
+    const deleteMutation = useMutation({
+        mutationFn: deleteRouteAssignment,
+
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["routeAssignments"],
+            });
+        },
+    });
+
+    const aiMutation = useMutation({
+        mutationFn: analyzeRoutes,
+    });
+
+    const {
+        data,
+        isLoading,
+        error,
+    } = useQuery({
+        queryKey: ["routeAssignments"],
+        queryFn: getRouteAssignments,
+    });
+
     const handleOpen = () => {
-        setSelectedAssignment(null)
+        setSelectedAssignment(null);
         setOpen(true);
-    }
+    };
 
     const handleClose = () => {
         setOpen(false);
         setSelectedAssignment(null);
-    }
+    };
 
     const handleSubmit = (formData: RouteAssignmentCreate) => {
         const assignmentData = {
@@ -104,25 +132,6 @@ function DashboardPage() {
             createMutation.mutate(assignmentData);
         }
     };
-    const deleteMutation = useMutation({
-        mutationFn: deleteRouteAssignment, onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ["routeAssignments"],});
-        }
-    });
-
-    const aiMutation = useMutation({
-        mutationFn: analyzeRoutes,
-    })
-
-    const {
-        data,
-        isLoading,
-        error,
-
-    } = useQuery({
-        queryKey: ["routeAssignments"],
-        queryFn: getRouteAssignments,
-    });
 
     if (isLoading) {
         return <Typography>Loading...</Typography>;
@@ -131,6 +140,8 @@ function DashboardPage() {
     if (error) {
         return <Typography>Error loading route assignments.</Typography>;
     }
+
+    const assignments = data.data;
 
     return (
         <Container maxWidth="xl" sx={{mt: 4, mb: 4}}>
@@ -147,7 +158,6 @@ function DashboardPage() {
                     sx={{
                         display: "flex",
                         flexDirection: "column",
-                        mb: 3,
                     }}
                 >
                     <Typography variant="h4">
@@ -175,6 +185,16 @@ function DashboardPage() {
                 </Button>
             </Box>
 
+            <AnalyticsCards
+                assignments={assignments}
+                overloadedRouteId={
+                    aiMutation.data?.overloaded_route.route_id
+                }
+                recommendedHelperId={
+                    aiMutation.data?.recommended_helper.route_id
+                }
+            />
+
             <Stack
                 direction="row"
                 spacing={2}
@@ -194,82 +214,15 @@ function DashboardPage() {
                 >
                     {aiMutation.isPending
                         ? "Analyzing Route Assignments..."
-                        : "Analyze Route Assignments"}
+                        : "Run AI Analysis"}
                 </Button>
             </Stack>
 
-            {aiMutation.isPending && (
-                <Card sx={{mb: 3}}>
-                    <CardContent>
-                        <Typography>
-                            Analyzing today's route assignments...
-                        </Typography>
-                    </CardContent>
-                </Card>
-            )}
-
-            {aiMutation.data && (
-                <Card
-                    sx={{
-                        mb: 3,
-                        maxWidth: 900,
-                        borderRadius: 2,
-                        boxShadow: 3,
-                    }}
-                >
-                    <CardContent>
-                        <Typography variant="h6" gutterBottom>
-                            Today's Workload Recommendation
-                        </Typography>
-
-                        <Typography variant="subtitle1" fontWeight="bold" sx={{mt: 2}}>
-                            Predicted to Exceed 8 Hours
-                        </Typography>
-
-                        <Typography>
-                            Route {aiMutation.data.overloaded_route.route_id}
-                        </Typography>
-
-                        <Typography>
-                            Carrier: {aiMutation.data.overloaded_route.carrier_name}
-                        </Typography>
-
-                        <Typography>
-                            Workload Score: {aiMutation.data.overloaded_route.score}
-                        </Typography>
-
-                        <Typography variant="subtitle1" fontWeight="bold" sx={{mt: 3}}>
-                            Recommended Helper
-                        </Typography>
-
-                        <Typography>
-                            Route {aiMutation.data.recommended_helper.route_id}
-                        </Typography>
-
-                        <Typography>
-                            Carrier: {aiMutation.data.recommended_helper.carrier_name}
-                        </Typography>
-
-                        <Typography>
-                            Workload Score: {aiMutation.data.recommended_helper.score}
-                        </Typography>
-
-                        <Typography variant="subtitle1" fontWeight="bold" sx={{mt: 3}}>
-                            Explanation
-                        </Typography>
-
-                        <Typography sx={{whiteSpace: "pre-line"}}>
-                            {aiMutation.data.recommendation}
-                        </Typography>
-                    </CardContent>
-                </Card>
-            )}
-
-            {aiMutation.error && (
-                <Typography color="error" sx={{mb: 2}}>
-                    Failed to analyze today's routes.
-                </Typography>
-            )}
+            <AIRecommendationCard
+                data={aiMutation.data}
+                isPending={aiMutation.isPending}
+                error={!!aiMutation.error}
+            />
 
             <RouteAssignmentForm
                 open={open}
@@ -294,15 +247,35 @@ function DashboardPage() {
                     </TableHead>
 
                     <TableBody>
-                        {data.data.map((assignment) => (
+                        {assignments.map((assignment) => (
                             <TableRow key={assignment.id}>
-                                <TableCell>{assignment.route_id}</TableCell>
-                                <TableCell>{assignment.carrier_name}</TableCell>
-                                <TableCell>{assignment.office}</TableCell>
-                                <TableCell>{assignment.dps}</TableCell>
-                                <TableCell>{assignment.parcels}</TableCell>
-                                <TableCell>{assignment.accountables}</TableCell>
-                                <TableCell>{assignment.date}</TableCell>
+                                <TableCell>
+                                    {assignment.route_id}
+                                </TableCell>
+
+                                <TableCell>
+                                    {assignment.carrier_name}
+                                </TableCell>
+
+                                <TableCell>
+                                    {assignment.office}
+                                </TableCell>
+
+                                <TableCell>
+                                    {assignment.dps}
+                                </TableCell>
+
+                                <TableCell>
+                                    {assignment.parcels}
+                                </TableCell>
+
+                                <TableCell>
+                                    {assignment.accountables}
+                                </TableCell>
+
+                                <TableCell>
+                                    {assignment.date}
+                                </TableCell>
 
                                 <TableCell>
                                     <Button
@@ -319,7 +292,9 @@ function DashboardPage() {
                                     <Button
                                         variant="contained"
                                         color="error"
-                                        onClick={() => setDeleteId(assignment.id)}
+                                        onClick={() =>
+                                            setDeleteId(assignment.id)
+                                        }
                                     >
                                         Delete
                                     </Button>
@@ -334,7 +309,9 @@ function DashboardPage() {
                 open={deleteId !== null}
                 onClose={() => setDeleteId(null)}
             >
-                <DialogTitle>Delete Route Assignment</DialogTitle>
+                <DialogTitle>
+                    Delete Route Assignment
+                </DialogTitle>
 
                 <DialogContent>
                     <DialogContentText>
@@ -362,8 +339,7 @@ function DashboardPage() {
                 </DialogActions>
             </Dialog>
         </Container>
-    )
-
+    );
 }
 
 export default DashboardPage;
